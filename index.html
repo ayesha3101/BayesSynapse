@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BayeSynapse</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><path d='M20 20L8 9M20 20L34 8M20 20L6 26M20 20L33 29' stroke='%231d1814' stroke-width='3'/><circle cx='20' cy='20' r='8' fill='%23a3371a'/></svg>">
+<style>
+:root{--bg:#f4ecdc;--paper:#fffaf0;--ink:#1d1814;--mut:#51463d;--line:#c9bb9d;--ac:#a3371a;--teal:#0f5c58;--serif:Georgia,'Iowan Old Style','Palatino Linotype',serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:17px/1.6 system-ui,-apple-system,'Segoe UI',sans-serif}
+header{display:flex;align-items:center;justify-content:space-between;max-width:1080px;margin:auto;padding:20px 24px}
+.brand{display:flex;align-items:center;gap:10px;font:700 22px var(--serif);cursor:pointer;color:var(--ink);background:none;border:0}
+main{max-width:1080px;margin:auto;padding:8px 24px 70px}
+h1{font:700 clamp(40px,6vw,60px)/1.05 var(--serif);margin:4px 0 18px;letter-spacing:-.02em}
+h2{font:700 34px/1.15 var(--serif);margin:6px 0 8px}h3{font:700 20px var(--serif);margin:0 0 6px}
+.kicker{margin:0;color:var(--ac);font-weight:700;letter-spacing:.08em;text-transform:uppercase;font-size:13px}
+.sub{color:var(--mut);margin:0 0 24px;font-size:18px}.mut{color:var(--mut)}
+.home{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:center;padding-top:10px}
+@media(max-width:860px){.home{grid-template-columns:1fr}#hero{order:-1;max-height:230px}}
+.lead{font:italic 22px/1.45 var(--serif);margin:0 0 14px}
+.how{list-style:none;counter-reset:s;padding:0;margin:14px 0 26px}
+.how li{counter-increment:s;position:relative;padding:8px 0 8px 46px}
+.how li:before{content:counter(s);position:absolute;left:0;top:8px;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 16px var(--serif)}
+.how b{display:block}.how span{color:var(--mut);font-size:15px}
+.btn{font:inherit;font-weight:700;background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:12px 28px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--ac);border-color:var(--ac)}
+.ghost{font:inherit;font-weight:600;background:none;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:9px 20px;cursor:pointer}.ghost:hover{background:var(--ink);color:var(--paper)}
+.ghost.on{background:var(--ink);color:var(--paper)}.sm{padding:4px 14px;font-size:14px}
+.alt{margin:18px 0 0;color:var(--mut)}.alt a{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+input,select{font:inherit;color:var(--ink);background:var(--paper);border:2px solid var(--ink);border-radius:12px;padding:9px 12px;max-width:100%}
+.step{max-width:700px;margin:0 auto}.step.wide{max-width:860px}
+.prog{display:flex;gap:6px;margin:0 0 22px}.prog i{flex:1;height:5px;border-radius:5px;background:var(--line)}.prog i.on{background:var(--ac)}
+.row{display:flex;gap:10px;align-items:center;margin:10px 0;flex-wrap:wrap}
+.vrow input{flex:1;min-width:0;font-size:18px}
+.x{background:none;border:0;color:var(--mut);font-size:20px;cursor:pointer;padding:4px 8px}.x:hover{color:var(--ac)}
+.add{display:inline-flex;align-items:center;gap:12px;background:none;border:0;font:inherit;font-weight:700;cursor:pointer;color:var(--ink);padding:6px 0;margin-top:6px}
+.add span{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:var(--ac);color:#fff;font-size:26px;line-height:1;transition:.15s}
+.add:hover span{transform:rotate(90deg);background:var(--ink)}.add:disabled{opacity:.4;cursor:not-allowed}
+.dep{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:12px 0;padding:14px 16px;background:var(--paper);border:2px solid var(--line);border-radius:16px}
+.dep>span{font:italic 19px var(--serif)}.dep select{min-width:130px}
+.note{color:var(--mut);font-size:15px;margin-top:18px}
+.card{background:var(--paper);border:2px solid var(--line);border-radius:20px;padding:20px 22px;margin-bottom:16px}
+.pr{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:10px 0;border-top:1px solid var(--line);font-size:16px}.pr:first-of-type{border-top:0}
+.num{display:flex;align-items:center;gap:10px;flex:none}.num input{width:92px}.num b{width:54px;text-align:right;font-family:var(--serif)}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:30px}
+svg{display:block;width:100%}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:14px;color:var(--mut);margin-top:6px}.legend i{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid var(--ink);margin-right:6px;vertical-align:-1px}
+.q{font:19px/2.5 var(--serif)}.q select{font-size:16px}
+.big{font:700 64px/1 var(--serif);color:var(--ac)}.big small{font-size:28px}
+.bar{height:12px;border-radius:12px;background:var(--line);margin:14px 0;overflow:hidden}.bar i{display:block;height:100%;background:var(--ac);transition:width .7s}
+details{margin-top:14px}summary{cursor:pointer;font-weight:700;text-decoration:underline;text-underline-offset:3px}
+pre{white-space:pre-wrap;font:13px/1.65 ui-monospace,Consolas,monospace;background:var(--bg);border:2px solid var(--line);border-radius:12px;padding:12px;max-height:300px;overflow:auto}
+.err{color:#9b1c1c;font-weight:600}
+.pulse{animation:p 3.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes p{50%{transform:scale(1.4)}}
+#toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);background:var(--ink);color:var(--paper);padding:12px 22px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:9;font-size:15px}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+header{display:block;max-width:none;padding:0;position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:2px solid var(--line)}
+.nav{display:flex;align-items:center;gap:14px;max-width:1080px;margin:auto;padding:10px 24px;flex-wrap:wrap}
+.links{display:flex;gap:4px;margin:0 auto 0 10px;flex-wrap:wrap}
+.lk{background:none;border:0;font:inherit;font-weight:600;padding:7px 14px;border-radius:999px;cursor:pointer;color:var(--mut)}
+.lk:hover{color:var(--ink)}.lk.on{color:var(--ink);background:var(--paper);box-shadow:inset 0 0 0 2px var(--ink)}
+.prog{display:flex;gap:8px;margin:0 0 24px;flex-wrap:wrap}
+.pst{display:flex;align-items:center;gap:8px;background:none;border:2px solid var(--line);border-radius:999px;padding:5px 14px 5px 6px;font:inherit;font-size:14px;color:var(--mut);cursor:default}
+.pst b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--ink);font-size:13px}
+.pst.cur{border-color:var(--ac);color:var(--ink);font-weight:700}.pst.cur b{background:var(--ac);color:#fff}
+.pst.done{cursor:pointer;color:var(--ink)}.pst.done b{background:var(--ink);color:var(--paper)}
+.foot{text-align:center;color:var(--mut);font-size:14px;padding:0 0 36px}
+.grp{margin:26px 0 10px;color:var(--ac);font:700 13px system-ui;letter-spacing:.07em;text-transform:uppercase}
+.pr{flex-wrap:wrap}.fv{min-width:46px;text-align:left!important}
+</style></head><body>
+<header><nav class="nav">
+  <button class="brand" onclick="nav('home')" aria-label="BayeSynapse home">
+    <svg width="34" height="34" viewBox="0 0 40 40"><g stroke="#1d1814" stroke-width="2.2" stroke-linecap="round"><path d="M20 20L8 9M20 20L34 8M20 20L6 26M20 20L33 29M20 20L20 4M20 20L22 37"/></g>
+    <g fill="#a3371a"><circle cx="8" cy="9" r="3.2"/><circle cx="34" cy="8" r="3.2"/><circle cx="6" cy="26" r="3.2"/><circle cx="33" cy="29" r="3.2"/><circle cx="20" cy="4" r="3.2"/><circle cx="22" cy="37" r="3.2"/></g><circle cx="20" cy="20" r="7.5" fill="#1d1814"/></svg>
+    BayeSynapse</button>
+  <div class="links" id="links"></div>
+  <button class="ghost sm" onclick="$('file').click()">Open</button>
+  <button class="ghost sm" id="saveBtn" onclick="save()" style="display:none">Save</button>
+</nav></header>
+<main id="main"></main>
+<footer class="foot">BayeSynapse · Learn Bayesian networks by building one</footer>
+<input id="file" type="file" accept=".json" hidden>
+<div id="toast"></div>
+<script>
+const MAX=10,$=id=>document.getElementById(id),TF=x=>x==='T'?'true':'false',pc=x=>Math.round((Number(x)||0)*1000)/10+'%';
+let net={variables:[],parents:{},cpt:{}},deps=[],screen='home',lastStep=1,qv='',qval='T',ev=[],method='enumeration';
+const EX={variables:['Burglary','Earthquake','Alarm','JohnCalls','MaryCalls'],
+ parents:{Burglary:[],Earthquake:[],Alarm:['Burglary','Earthquake'],JohnCalls:['Alarm'],MaryCalls:['Alarm']},
+ cpt:{Burglary:{'':.001},Earthquake:{'':.002},Alarm:{TT:.95,TF:.94,FT:.29,FF:.001},JohnCalls:{T:.9,F:.05},MaryCalls:{T:.7,F:.01}}};
+const EX2={variables:['Rain','Sprinkler','WetGrass'],parents:{Rain:[],Sprinkler:['Rain'],WetGrass:['Rain','Sprinkler']},
+ cpt:{Rain:{'':.2},Sprinkler:{T:.01,F:.4},WetGrass:{TT:.99,TF:.8,FT:.9,FF:0}}};
+const EXS=[{t:'Burglar alarm',d:'Is a burglary likely if the alarm rings and both neighbours call? The classic textbook network.',n:EX,q:'Burglary',e:[{v:'JohnCalls',val:'T'},{v:'MaryCalls',val:'T'}]},
+ {t:'Wet grass',d:'Is the grass wet because of rain or the sprinkler? See how two causes compete to explain what you saw.',n:EX2,q:'Rain',e:[{v:'WetGrass',val:'T'}]}];
+const HOW={enumeration:'Enumeration adds up the probability of every possible combination of the things we don’t know.',
+ elimination:'Variable elimination fixes what we know, then combines the tables and removes unknown variables one at a time.'};
+const combos=n=>n?combos(n-1).flatMap(c=>['T','F'].map(x=>c+x)):[''];   // first parent = first character
+const cap=(v,k)=>(k?'When '+net.parents[v].map((p,i)=>`${p} is ${TF(k[i])}`).join(' and ')+', how':'How')+` likely is <b>${v}</b> to be true?`;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),3000)}
+const NOAPI='Can’t reach the calculator. Start it with “python server.py”, open http://localhost:8000 (don’t open index.html directly), or deploy it on Vercel.';
+const toTop=()=>window.scrollTo(0,0);
+
+// ---------- navigation ----------
+function home(){screen='home';renderAll();toTop()}
+function nav(k){if(k==='create')return create();screen=k;renderAll();toTop()}
+function create(){screen=lastStep;renderAll();toTop()}   // pick up where you left off
+function newNet(){if(net.variables.length&&!confirm('Start a new network? The current one will be cleared. Use Save first if you want to keep it.'))return;
+ net={variables:[],parents:{},cpt:{}};deps=[];ev=[];qv='';lastStep=1;screen=1;renderAll();toTop()}
+function jump(n){screen=n;renderAll();toTop()}
+function setQ(v){if(ev.some(e=>e.v===v)){ev=ev.filter(e=>e.v!==v);toast(`${v} is now the question, so it was removed from what we know`)}qv=v;renderAll()}
+function addEv(){const f=net.variables.find(v=>v!==qv&&!ev.some(e=>e.v===v));if(f){ev.push({v:f,val:'T'});renderAll()}}
+const fv=x=>+(1-Math.min(1,Math.max(0,Number(x)||0))).toFixed(4);   // P(false) = 1 - P(true)
+function depthOf(v,memo){return memo[v]??=net.parents[v].length?1+Math.max(...net.parents[v].map(p=>depthOf(p,memo))):0}
+function back(n){screen=n-1;renderAll();toTop()}
+function next(n){
+ if(n===1&&net.variables.length<2)return toast('Add at least two variables to connect them');
+ if(n===2&&!applyDeps())return;
+ screen=n+1;renderAll();toTop()}
+function loadExample(i){const x=EXS[i];loadNet(x.n);qv=x.q;ev=x.e.map(e=>({...e}));renderAll();toTop()}
+
+// ---------- step 1: variables ----------
+function addVar(){
+ if(net.variables.length>=MAX)return toast('Maximum is 10 variables');
+ let i=1;while(net.variables.includes('Var'+i))i++;const n='Var'+i;   // placeholder to type over
+ net.variables.push(n);net.parents[n]=[];net.cpt[n]={'':0.5};renderAll();
+ const all=document.querySelectorAll('.vrow input'),l=all[all.length-1];l.focus();l.select()}
+function setParents(v,list){net.parents[v]=net.variables.filter(x=>list.includes(x));
+ net.cpt[v]=Object.fromEntries(combos(net.parents[v].length).map(k=>[k,0.5]))}
+function delVar(v){net.variables=net.variables.filter(x=>x!==v);delete net.parents[v];delete net.cpt[v];
+ deps=deps.filter(d=>d.c!==v&&d.p!==v);
+ for(const c of net.variables)if(net.parents[c].includes(v))setParents(c,net.parents[c].filter(x=>x!==v));renderAll()}
+function rename(o,n){n=n.trim();if(n===o)return;
+ if(!/^\w{1,12}$/.test(n)||net.variables.includes(n)){toast('Use 1–12 letters, numbers or _, and a name not used yet');return renderAll()}
+ net.variables=net.variables.map(v=>v===o?n:v);
+ net.parents[n]=net.parents[o];delete net.parents[o];net.cpt[n]=net.cpt[o];delete net.cpt[o];
+ for(const c of net.variables)net.parents[c]=net.parents[c].map(p=>p===o?n:p);
+ deps.forEach(d=>{if(d.c===o)d.c=n;if(d.p===o)d.p=n});
+ if(qv===o)qv=n;ev.forEach(e=>{if(e.v===o)e.v=n});renderAll()}
+
+// ---------- step 2: dependencies ("A dependent on B") ----------
+const reaches=(a,b,rows)=>{const seen=new Set([a]),st=[a];   // is there a cause→effect path from a to b?
+ while(st.length){const x=st.pop();if(x===b)return true;
+  rows.forEach(r=>{if(r.p===x&&r.c&&!seen.has(r.c)){seen.add(r.c);st.push(r.c)}})}return false};
+function addDep(){deps.push({c:'',p:''});renderAll()}
+function delDep(i){deps.splice(i,1);renderAll()}
+function setDep(i,k,val){const d=deps[i],old=d[k];d[k]=val;
+ if(d.c&&d.p){const o=deps.filter((_,j)=>j!==i);
+  const bad=d.c===d.p?'A variable can’t depend on itself':o.some(x=>x.c===d.c&&x.p===d.p)?'That dependency is already listed'
+   :reaches(d.c,d.p,o)?`That would make a loop: ${d.p} already depends on ${d.c}`:'';
+  if(bad){d[k]=old;toast(bad)}}
+ renderAll()}
+function applyDeps(){   // turn the rows into net.parents; keep old probabilities when a variable's causes didn't change
+ if(deps.some(d=>!d.c||!d.p)){toast('Finish or remove the empty dependency');return false}
+ for(const v of net.variables){const np=net.variables.filter(x=>deps.some(d=>d.c===v&&d.p===x)),old=net.parents[v];
+  if(!(np.length===old.length&&np.every(x=>old.includes(x))))setParents(v,np)}
+ return true}
+function setP(v,k,x){net.cpt[v][k]=Math.min(1,Math.max(0,Number(x)||0))}
+
+// ---------- screens ----------
+const sel=(cur,call,blank,skip=[])=>`<select onchange="${call}">${blank?'<option value="">choose…</option>':''}${net.variables.filter(v=>v===cur||!skip.includes(v)).map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join('')}</select>`;
+const tf=(cur,call)=>`<select onchange="${call}">${['T','F'].map(x=>`<option value="${x}" ${x===cur?'selected':''}>${TF(x)}</option>`).join('')}</select>`;
+const frame=(n,title,sub,body,nxt)=>`<section class="step${n===4?' wide':''}"><div class="prog">${['Variables','Dependencies','Probabilities','Network'].map((t,j)=>`<button class="pst ${j+1<n?'done':j+1===n?'cur':''}" ${j+1<n?`onclick="jump(${j+1})"`:'tabindex="-1"'}><b>${j+1<n?'✓':j+1}</b>${t}</button>`).join('')}</div>
+ <p class="kicker">Step ${n} of 4</p><h2>${title}</h2><p class="sub">${sub}</p>${body}
+ <div class="nav"><button class="ghost" onclick="${n>1?`back(${n})`:'home()'}">← Back</button>${nxt?`<button class="btn" onclick="next(${n})">${nxt}</button>`:'<span></span>'}</div></section>`;
+function renderAll(){
+ const vs=net.variables;
+ if(typeof screen==='number')lastStep=screen;
+ const cur=typeof screen==='number'?'create':screen;
+ $('links').innerHTML=[['home','Home'],['create','Create network'],['examples','Examples'],['learn','Learn']].map(([k,t])=>`<button class="lk ${cur===k?'on':''}" onclick="nav('${k}')">${t}</button>`).join('');
+ if(!vs.includes(qv))qv=vs[0]||'';ev=ev.filter((e,i)=>vs.includes(e.v)&&e.v!==qv&&ev.findIndex(x=>x.v===e.v)===i);
+ $('saveBtn').style.display=vs.length?'':'none';
+ let h='';
+ if(screen==='home')h=`<section class="home"><div>
+  <p class="kicker">A friendly guide to</p><h1>Bayesian networks</h1>
+  <p class="lead">Bayes’ idea is simple: when you learn something new, update how likely things are.</p>
+  <p>A Bayesian network is a map of things that can be true or false, and which of them influence each other. Hear an alarm ring and a burglary becomes more likely. Then learn there was an earthquake, and a burglary becomes less likely again. BayeSynapse works out exactly how much.</p>
+  <h3 style="margin-top:22px">How to use it</h3>
+  <ol class="how"><li><b>Add your variables</b><span>The things you are studying, like Rain or Alarm.</span></li>
+  <li><b>Say what depends on what</b><span>For example, “WetGrass is dependent on Rain”.</span></li>
+  <li><b>Fill in the probabilities</b><span>How likely each thing is.</span></li>
+  <li><b>See your network and ask questions</b><span>Get the answer along with every step of the working.</span></li></ol>
+  <div class="row"><button class="btn" onclick="newNet()">Create a network</button><button class="ghost" onclick="$('file').click()">Open a saved network</button></div>
+  <p class="alt">Not sure yet? <a onclick="nav('examples')">Browse examples</a> or <a onclick="nav('learn')">read the basics</a>.</p></div>
+  <svg id="hero" viewBox="0 0 400 360" aria-hidden="true"></svg></section>`;
+if(screen==='examples')h=`<section class="step"><p class="kicker">Examples</p><h2>Start from a worked example</h2><p class="sub">Open one to see a finished network, then change anything you like.</p>
+  ${EXS.map((x,i)=>`<div class="card"><h3>${x.t}</h3><p class="mut" style="margin:0 0 14px">${x.d}</p><button class="btn" onclick="loadExample(${i})">Open this example</button></div>`).join('')}</section>`;
+ if(screen==='learn')h=`<section class="step"><p class="kicker">Learn</p><h2>The basics, in plain words</h2><p class="sub">Everything you need to use BayeSynapse.</p>
+  ${[['Variable','Something that can be true or false, like Rain or Alarm.'],['Dependency','When one variable directly influences another. “WetGrass is dependent on Rain” means rain changes how likely wet grass is.'],
+  ['Probability table','For each variable, how likely it is to be true for every combination of the things it depends on.'],['Evidence','What you already know for certain when you ask a question, like “the alarm is ringing”.'],
+  ['Enumeration','Works out an answer by adding up every possible case.'],['Variable elimination','Gives the same answer with fewer steps, by combining tables and removing unknowns one at a time.']]
+  .map(([a,b])=>`<div class="card"><h3>${a}</h3><p style="margin:0">${b}</p></div>`).join('')}<div class="row"><button class="btn" onclick="newNet()">Create a network</button></div></section>`;
+ if(screen===1)h=frame(1,'What are you studying?','Add each thing that can be true or false, up to 10. Click the plus, type a name, and press Enter for the next one.',
+  `${vs.map(v=>`<div class="row vrow"><input value="${v}" maxlength="12" aria-label="Variable name" onkeydown="if(event.key==='Enter'){this.blur();addVar()}" onchange="rename('${v}',this.value)"><button class="x" title="Remove" onclick="delVar('${v}')">✕</button></div>`).join('')}
+  <button class="add" onclick="addVar()" ${vs.length>=MAX?'disabled':''}><span>+</span>Add variable</button> <span class="mut">${vs.length} of 10</span>`,'Next');
+ if(screen===2)h=frame(2,'What depends on what?','Pick two variables for each line. Anything you leave out doesn’t depend on anything.',
+  `${deps.map((d,i)=>`<div class="dep">${sel(d.c,`setDep(${i},'c',this.value)`,1)}<span>dependent on</span>${sel(d.p,`setDep(${i},'p',this.value)`,1)}<button class="x" title="Remove" onclick="delDep(${i})">✕</button></div>`).join('')}
+  <button class="add" onclick="addDep()"><span>+</span>Add dependency</button>`,'Next');
+ if(screen===3){const memo={},srt=[...vs].sort((a,b)=>depthOf(a,memo)-depthOf(b,memo)),   // causes before effects
+   roots=srt.filter(v=>!net.parents[v].length),rest=srt.filter(v=>net.parents[v].length);
+  const pcard=v=>`<div class="card"><h3>${v}</h3>${net.parents[v].length?`<p class="mut" style="margin:0 0 4px">depends on ${net.parents[v].join(', ')}</p>`:''}${Object.keys(net.cpt[v]).map(k=>`<label class="pr"><span>${cap(v,k)}</span><span class="num"><span class="mut">true</span>
+  <input type="number" min="0" max="1" step="0.01" value="${net.cpt[v][k]}" oninput="this.parentNode.querySelector('.fv').textContent=fv(this.value)" onchange="setP('${v}','${k}',this.value);this.value=net.cpt['${v}']['${k}'];this.parentNode.querySelector('.fv').textContent=fv(this.value)"><span class="mut">false</span><b class="fv">${fv(net.cpt[v][k])}</b></span></label>`).join('')}</div>`;
+  h=frame(3,'How likely is each one?','Enter how likely each one is to be true, from 0 to 1. The false value fills in by itself.',
+   (roots.length?`<h3 class="grp">Start here: nothing influences these</h3>`+roots.map(pcard).join(''):'')+
+   (rest.length?`<h3 class="grp">Then these: they depend on the ones above</h3>`+rest.map(pcard).join(''):''),'See my network')}
+ if(screen===4)h=frame(4,'Your network','Arrows point from cause to effect. Now ask it a question.',
+  `<div class="card"><svg id="svg" viewBox="0 0 640 220" role="img" aria-label="Your Bayesian network"></svg>
+  <div class="legend"><span><i style="background:var(--ac)"></i>What you’re asking about</span><span><i style="background:var(--teal)"></i>What you already know</span></div></div>
+  <div class="card"><div class="q">How likely is ${sel(qv,"setQ(this.value)",0,ev.map(e=>e.v))} to be ${tf(qval,"qval=this.value")}${ev.length?', if we know that:':'?'}</div>
+  ${ev.map((e,i)=>`<div class="row">${sel(e.v,`ev[${i}].v=this.value;renderAll()`,0,[qv,...ev.filter((_,j)=>j!==i).map(x=>x.v)])} is ${tf(e.val,`ev[${i}].val=this.value`)}<button class="x" title="Remove" onclick="ev.splice(${i},1);renderAll()">✕</button></div>`).join('')}
+  <button class="add" onclick="addEv()" ${vs.some(v=>v!==qv&&!ev.some(e=>e.v===v))?'':'disabled'}><span>+</span>Add something we know</button>
+  <div class="row" style="margin-top:14px"><button class="btn" onclick="solve()">Work it out</button></div><div id="res"></div></div>`,'');
+ $('main').innerHTML=h;
+ if(screen==='home')hero();if(screen===4)draw()}
+
+// ---------- drawing ----------
+function hero(){let r=7;const rnd=()=>(r=r*16807%2147483647)/2147483647,P=Array.from({length:18},()=>[30+rnd()*340,30+rnd()*300]);let s='';
+ P.forEach((a,i)=>P.map((b,j)=>[j,Math.hypot(a[0]-b[0],a[1]-b[1])]).filter(x=>x[0]!==i).sort((x,y)=>x[1]-y[1]).slice(0,2)
+  .forEach(([j])=>s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${P[j][0]}" y2="${P[j][1]}" stroke="#a3371a" stroke-opacity=".4" stroke-width="1.6"/>`));
+ P.forEach((a,i)=>s+=`<circle class="pulse" style="animation-delay:${(i%6)*.5}s" cx="${a[0]}" cy="${a[1]}" r="${i%4?5:9}" fill="${i%4?'#1d1814':'#a3371a'}"/>`);
+ $('hero').innerHTML=s}
+function draw(){const vs=net.variables,L={},R=26;
+ const lay=v=>L[v]??=net.parents[v].length?1+Math.max(...net.parents[v].map(lay)):0;
+ vs.forEach(lay);const rows={};vs.forEach(v=>(rows[L[v]]??=[]).push(v));
+ const n=Object.keys(rows).length||1,W=640,H=Math.max(220,n*110),pos={};
+ for(const[d,ns]of Object.entries(rows))ns.forEach((v,i)=>pos[v]=[W*(i+.5)/ns.length,44+(H-88)*(n>1?d/(n-1):.5)]);
+ let s='<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d1814"/></marker></defs>';
+ for(const c of vs)for(const p of net.parents[c]){   // curved "axon" with a travelling signal dot
+  const[x1,y1]=pos[p],[x2,y2]=pos[c],dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy),ux=dx/l,uy=dy/l,
+  sx=x1+ux*R,sy=y1+uy*R,ex=x2-ux*(R+6),ey=y2-uy*(R+6),mx=(sx+ex)/2-uy*l*.1,my=(sy+ey)/2+ux*l*.1,d=`M${sx} ${sy}Q${mx} ${my} ${ex} ${ey}`;
+  s+=`<path d="${d}" fill="none" stroke="#1d1814" stroke-width="2.2" marker-end="url(#a)"/><circle r="3.6" fill="#a3371a"><animateMotion dur="2.6s" repeatCount="indefinite" path="${d}"/></circle>`}
+ for(const v of vs){const[x,y]=pos[v],e=ev.some(q=>q.v===v),q=v===qv&&!e,f=e?'#0f5c58':q?'#a3371a':'#fffaf0',t=e||q?'#fff':'#1d1814';
+  s+=`<g style="cursor:pointer" onclick="setQ('${v}')"><circle cx="${x}" cy="${y}" r="${R}" fill="${f}" stroke="#1d1814" stroke-width="2.6"/>
+  <text x="${x}" y="${y+4}" text-anchor="middle" font-size="${v.length>7?9.5:12.5}" font-weight="700" fill="${t}" pointer-events="none">${v}</text></g>`}
+ $('svg').setAttribute('viewBox',`0 0 ${W} ${H}`);$('svg').innerHTML=s}
+
+// ---------- solving (Python backend) ----------
+async function solve(){
+ if(!qv)return;
+ const evidence={};ev.forEach(e=>evidence[e.v]=e.val==='T');
+ $('res').innerHTML='<p class="mut">Working it out…</p>';
+ try{const r=await fetch('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},
+   body:JSON.stringify({network:net,query:{[qv]:qval==='T'},evidence,method})});
+  const t=await r.text();let d;try{d=JSON.parse(t)}catch{throw Error(NOAPI)}
+  if(!r.ok)throw Error(d.error||NOAPI);
+  const given=ev.length?`, given that ${ev.map(e=>`${e.v} is ${TF(e.val)}`).join(' and ')},`:'',p=(d.value*100).toFixed(2);
+  $('res').innerHTML=`<div style="border-top:2px solid var(--line);margin-top:18px;padding-top:18px"><p id="sent" style="font:19px var(--serif);margin:0 0 10px"></p>
+  <div class="big">${p}<small>%</small></div><div class="bar"><i style="width:${d.value*100}%"></i></div>
+  <details><summary>How was this worked out?</summary><div class="row" style="margin-top:12px">
+  <button class="ghost sm ${method==='enumeration'?'on':''}" onclick="method='enumeration';solve()">Enumeration</button>
+  <button class="ghost sm ${method==='elimination'?'on':''}" onclick="method='elimination';solve()">Variable elimination</button></div>
+  <p class="mut" id="how"></p><p id="formula" style="font-weight:600"></p><pre id="steps"></pre></details></div>`;
+  $('sent').textContent=`The probability${given} that ${qv} is ${TF(qval)} is ${p}%.`;
+  $('how').textContent=HOW[method];$('formula').textContent=d.formula;$('steps').textContent=d.steps.join('\n');
+  document.querySelector('#res details').open=true}
+ catch(e){$('res').innerHTML='<p class="err" id="er"></p>';$('er').textContent=e instanceof TypeError?NOAPI:e.message}}
+
+// ---------- save / open ----------
+function loadNet(o){const vs=o.variables,P=o.parents||{},C=o.cpt||{};
+ if(!Array.isArray(vs)||vs.length>MAX||new Set(vs).size!==vs.length||!vs.every(v=>/^\w{1,12}$/.test(v)))throw Error('This file isn’t a valid network');
+ const n={variables:vs,parents:{},cpt:{}};
+ for(const v of vs){const p=P[v]||[];
+  if(!Array.isArray(p)||p.some(x=>!vs.includes(x)||x===v))throw Error('Bad dependencies for '+v);
+  n.parents[v]=p;n.cpt[v]={};
+  for(const k of combos(p.length)){const x=Number(C[v]?.[k]);if(!(x>=0&&x<=1))throw Error('Bad probability for '+v);n.cpt[v][k]=x}}
+ const done=new Set();let left=[...vs];
+ while(left.length){const r=left.filter(v=>n.parents[v].every(p=>done.has(p)));
+  if(!r.length)throw Error('The network has a loop');r.forEach(v=>done.add(v));left=left.filter(v=>!done.has(v))}
+ net=n;deps=[];vs.forEach(c=>n.parents[c].forEach(p=>deps.push({c,p})));ev=[];qv=vs[0]||'';qval='T';screen=4;renderAll()}
+function save(){const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([JSON.stringify(net,null,2)],{type:'application/json'}));a.download='bayesynapse-network.json';a.click();toast('Network saved to your downloads')}
+$('file').onchange=async e=>{try{loadNet(JSON.parse(await e.target.files[0].text()));toTop()}catch(x){toast(x.message)}e.target.value=''};
+renderAll();
+</script></body></html>
