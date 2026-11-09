@@ -1,6 +1,10 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>BayeSynapse</title>
+<title>BayeSynapse · Bayesian networks, made visible</title>
+<meta name="description" content="Build a Bayesian network step by step, ask questions, and see exactly how the answer is worked out.">
+<meta property="og:title" content="BayeSynapse · Bayesian networks, made visible"><meta property="og:description" content="Build a Bayesian network step by step, ask questions, and see exactly how the answer is worked out."><meta property="og:type" content="website">
+<meta name="color-scheme" content="light dark">
+<script>try{document.documentElement.dataset.theme=localStorage.getItem('bs-theme')||(matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light')}catch{document.documentElement.dataset.theme='light'}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><path d='M20 20L8 9M20 20L34 8M20 20L6 26M20 20L33 29' stroke='%231d1814' stroke-width='3'/><circle cx='20' cy='20' r='8' fill='%23a3371a'/></svg>">
 <style>
 :root{--bg:#f4ecdc;--paper:#fffaf0;--ink:#1d1814;--mut:#51463d;--line:#c9bb9d;--ac:#a3371a;--teal:#0f5c58;--serif:Georgia,'Iowan Old Style','Palatino Linotype',serif}
@@ -18,8 +22,8 @@ h2{font:700 34px/1.15 var(--serif);margin:6px 0 8px}h3{font:700 20px var(--serif
 .lead{font:italic 22px/1.45 var(--serif);margin:0 0 14px}
 .how{list-style:none;counter-reset:s;padding:0;margin:14px 0 26px}
 .how li{counter-increment:s;position:relative;padding:8px 0 8px 46px}
-.how li:before{content:counter(s);position:absolute;left:0;top:8px;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg);display:grid;place-items:center;font:700 16px var(--serif)}
-.how b{display:block}.how span{color:var(--mut);font-size:15px}
+
+.how b{display:block}.how li>span{color:var(--mut);font-size:15px}
 .btn{font:inherit;font-weight:700;background:var(--ink);color:var(--paper);border:2px solid var(--ink);border-radius:999px;padding:12px 28px;cursor:pointer;transition:.15s}
 .btn:hover{background:var(--ac);border-color:var(--ac)}
 .ghost{font:inherit;font-weight:600;background:none;color:var(--ink);border:2px solid var(--ink);border-radius:999px;padding:9px 20px;cursor:pointer}.ghost:hover{background:var(--ink);color:var(--paper)}
@@ -61,18 +65,65 @@ header{display:block;max-width:none;padding:0;position:sticky;top:0;z-index:5;ba
 .prog{display:flex;gap:8px;margin:0 0 24px;flex-wrap:wrap}
 .pst{display:flex;align-items:center;gap:8px;background:none;border:2px solid var(--line);border-radius:999px;padding:5px 14px 5px 6px;font:inherit;font-size:14px;color:var(--mut);cursor:default}
 .pst b{display:grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--line);color:var(--ink);font-size:13px}
-.pst.cur{border-color:var(--ac);color:var(--ink);font-weight:700}.pst.cur b{background:var(--ac);color:#fff}
+.pst.cur{border-color:var(--ac);color:var(--ink);font-weight:700}.pst.cur b{background:var(--ac);color:var(--on)}
 .pst.done{cursor:pointer;color:var(--ink)}.pst.done b{background:var(--ink);color:var(--paper)}
 .foot{text-align:center;color:var(--mut);font-size:14px;padding:0 0 36px}
 .grp{margin:26px 0 10px;color:var(--ac);font:700 13px system-ui;letter-spacing:.07em;text-transform:uppercase}
 .pr{flex-wrap:wrap}.fv{min-width:46px;text-align:left!important}
+.vc{background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:12px 14px;margin:12px 0}
+.vc .row{margin:8px 0}.vrow select{max-width:190px}
+.st{display:inline-flex;align-items:center;border:2px solid var(--line);border-radius:12px;background:var(--bg)}
+.st input{border:0;width:96px;background:none;padding:6px 8px}.st .x{padding:2px 8px}
+.add.sm{padding:0;gap:8px;font-size:15px}.add.sm span{width:28px;height:28px;font-size:20px}
+.sv{display:flex;flex-direction:column;font-size:13px}.sv input{width:84px}.sv b{font-family:var(--serif);font-size:18px;padding:8px 0}
+.num{flex-wrap:wrap}.num.bad input{border-color:#9b1c1c;background:#fde8e8}
+[data-theme=dark]{--bg:#14110f;--paper:#1e1a17;--ink:#f4ecde;--mut:#b9ad9c;--line:#3b342d;--ac:#ef7a4e;--teal:#3cc2b6}
+[data-theme=dark] .err{color:#ff8a80}[data-theme=dark] .num.bad input{background:#4a1f1f}
+body{transition:background .3s,color .3s}
+main.enter>*{animation:rise .45s ease both}@keyframes rise{from{opacity:0;transform:translateY(12px)}}
+h1 em{font-style:normal;background:linear-gradient(100deg,var(--ac),var(--teal));-webkit-background-clip:text;background-clip:text;color:transparent}
+.pills{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 6px}.pills span{border:2px solid var(--line);border-radius:999px;padding:3px 14px;font-size:14px;font-weight:600}
+#hero{width:100%;height:auto;filter:drop-shadow(0 18px 30px #0003)}
+.bo{fill:var(--paper);stroke:var(--ink);stroke-width:3;stroke-linejoin:round}.gy{fill:none;stroke:var(--mut);stroke-width:2;stroke-linecap:round;opacity:.55}
+.icon{width:40px;height:40px;padding:0;display:grid;place-items:center;border-radius:50%}
+.sl{display:flex;gap:8px;align-items:center}.sl input[type=range]{width:120px;accent-color:var(--ac);padding:0;border:0;background:none}.sl input[type=number]{width:78px}
+.resgrid{display:flex;gap:26px;align-items:center;flex-wrap:wrap}.resgrid svg.ring{width:150px;flex:none}
+.rt{fill:none;stroke:var(--line);stroke-width:12}.rf{fill:none;stroke:var(--ac);stroke-width:12;stroke-linecap:round;transform:rotate(-90deg);transform-origin:60px 60px}.rn{font:700 22px var(--serif);fill:var(--ink)}
+.dist{min-width:230px;flex:1}.drow{display:grid;grid-template-columns:90px 1fr 56px;gap:10px;align-items:center;font-size:15px}.drow .bar{margin:6px 0}
+.drow.me span,.drow.me b{font-weight:700}.drow:not(.me) .bar i{background:var(--mut);opacity:.55}.drow b{text-align:right;font-variant-numeric:tabular-nums}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+select{appearance:none;-webkit-appearance:none;padding-right:34px;cursor:pointer;background-repeat:no-repeat;background-position:right 12px center;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%231d1814' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")}
+[data-theme=dark] select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5l5 5 5-5' fill='none' stroke='%23f4ecde' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E")}
+.btn:active,.ghost:active{transform:scale(.97)}
+.tundo{margin-left:16px;background:none;border:0;color:var(--ac);font:inherit;font-weight:700;text-decoration:underline;cursor:pointer}
+@media(max-width:700px){.nav{gap:8px;padding:10px 16px}.links{order:9;width:100%;overflow-x:auto;margin:0}main{padding:8px 16px 60px}h2{font-size:28px}.dep,.vrow{gap:8px}.resgrid{justify-content:center}}
+.dig{display:grid;place-items:center;font:700 15px/1 system-ui,-apple-system,'Segoe UI',sans-serif;font-variant-numeric:lining-nums tabular-nums}
+.pst .dig{font-size:13px}
+.how li .dig{position:absolute;left:0;top:8px;width:32px;height:32px;border-radius:50%;background:var(--ink);color:var(--bg)}
+.add span{font-size:0;position:relative}
+.add span::before,.add span::after{content:"";position:absolute;left:50%;top:50%;width:16px;height:3px;background:var(--on);border-radius:2px;transform:translate(-50%,-50%)}
+.add span::after{transform:translate(-50%,-50%) rotate(90deg)}
+.add.sm span{font-size:0}
+.add.sm span::before,.add.sm span::after{width:11px;height:2px}
+:root{--on:#fff}[data-theme=dark]{--on:#14110f}
+.q select{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;font-size:16px}
+.pr{display:block}.pr>span:first-child{display:block;margin-bottom:10px}
+.num{display:flex;gap:26px;align-items:flex-end;flex-wrap:wrap;justify-content:flex-start}
+@media(max-width:700px){.links{flex-wrap:nowrap}.lk{white-space:nowrap;padding:6px 12px;font-size:15px}.brand{font-size:19px}.nav .brand svg{width:30px;height:30px}.nav .ghost.sm{padding:6px 12px}.icon{width:34px;height:34px}.brand{font-size:17px}.nav .brand svg{width:26px;height:26px}.nav{gap:6px}}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.grow{flex:1}
+#ed{display:block;width:100%;height:460px;touch-action:none;border:2px solid var(--line);border-radius:16px;background:radial-gradient(var(--line) 1.2px,transparent 1.5px) 0 0/24px 24px var(--paper)}
+#ed.node{cursor:crosshair}#ed.arc{cursor:alias}
+.lnk{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+@media(max-width:700px){#ed{height:380px}}
 </style></head><body>
 <header><nav class="nav">
   <button class="brand" onclick="nav('home')" aria-label="BayeSynapse home">
-    <svg width="34" height="34" viewBox="0 0 40 40"><g stroke="#1d1814" stroke-width="2.2" stroke-linecap="round"><path d="M20 20L8 9M20 20L34 8M20 20L6 26M20 20L33 29M20 20L20 4M20 20L22 37"/></g>
-    <g fill="#a3371a"><circle cx="8" cy="9" r="3.2"/><circle cx="34" cy="8" r="3.2"/><circle cx="6" cy="26" r="3.2"/><circle cx="33" cy="29" r="3.2"/><circle cx="20" cy="4" r="3.2"/><circle cx="22" cy="37" r="3.2"/></g><circle cx="20" cy="20" r="7.5" fill="#1d1814"/></svg>
+    <svg width="36" height="36" viewBox="0 0 40 40"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 20L8 9M20 20L34 8M20 20L6 26M20 20L33 29M20 20L20 4M20 20L22 37"/></g>
+    <g style="fill:var(--ac)"><circle cx="8" cy="9" r="3.2"/><circle cx="34" cy="8" r="3.2"/><circle cx="6" cy="26" r="3.2"/><circle cx="33" cy="29" r="3.2"/><circle cx="20" cy="4" r="3.2"/><circle cx="22" cy="37" r="3.2"/></g><circle cx="20" cy="20" r="7.5" fill="currentColor"/></svg>
     BayeSynapse</button>
   <div class="links" id="links"></div>
+  <button class="ghost icon" id="themeBtn" onclick="toggleTheme()" aria-label="Toggle dark mode"></button>
   <button class="ghost sm" onclick="$('file').click()">Open</button>
   <button class="ghost sm" id="saveBtn" onclick="save()" style="display:none">Save</button>
 </nav></header>
@@ -82,55 +133,139 @@ header{display:block;max-width:none;padding:0;position:sticky;top:0;z-index:5;ba
 <div id="toast"></div>
 <script>
 const MAX=10,$=id=>document.getElementById(id),TF=x=>x==='T'?'true':'false',pc=x=>Math.round((Number(x)||0)*1000)/10+'%';
-let net={variables:[],parents:{},cpt:{}},deps=[],screen='home',lastStep=1,qv='',qval='T',ev=[],method='enumeration';
+let net={variables:[],states:{},parents:{},cpt:{}},deps=[],screen='home',lastStep=1,qv='',qval='T',ev=[],method='enumeration';
 const EX={variables:['Burglary','Earthquake','Alarm','JohnCalls','MaryCalls'],
  parents:{Burglary:[],Earthquake:[],Alarm:['Burglary','Earthquake'],JohnCalls:['Alarm'],MaryCalls:['Alarm']},
  cpt:{Burglary:{'':.001},Earthquake:{'':.002},Alarm:{TT:.95,TF:.94,FT:.29,FF:.001},JohnCalls:{T:.9,F:.05},MaryCalls:{T:.7,F:.01}}};
 const EX2={variables:['Rain','Sprinkler','WetGrass'],parents:{Rain:[],Sprinkler:['Rain'],WetGrass:['Rain','Sprinkler']},
  cpt:{Rain:{'':.2},Sprinkler:{T:.01,F:.4},WetGrass:{TT:.99,TF:.8,FT:.9,FF:0}}};
+const EX3={variables:['Weather','Umbrella','Late'],states:{Weather:['Sunny','Cloudy','Rainy'],Umbrella:['Yes','No'],Late:['Yes','No']},
+ parents:{Weather:[],Umbrella:['Weather'],Late:['Weather']},
+ cpt:{Weather:{'':[.5,.3,.2]},Umbrella:{Sunny:[.1,.9],Cloudy:[.4,.6],Rainy:[.9,.1]},Late:{Sunny:[.1,.9],Cloudy:[.2,.8],Rainy:[.5,.5]}}};
 const EXS=[{t:'Burglar alarm',d:'Is a burglary likely if the alarm rings and both neighbours call? The classic textbook network.',n:EX,q:'Burglary',e:[{v:'JohnCalls',val:'T'},{v:'MaryCalls',val:'T'}]},
+ {t:'Weather, umbrella and being late',d:'Weather has three states. If you see an umbrella and the person is late, how likely is it raining?',n:EX3,q:'Weather',v:'Rainy',e:[{v:'Umbrella',val:'Yes'},{v:'Late',val:'Yes'}]},
  {t:'Wet grass',d:'Is the grass wet because of rain or the sprinkler? See how two causes compete to explain what you saw.',n:EX2,q:'Rain',e:[{v:'WetGrass',val:'T'}]}];
 const HOW={enumeration:'Enumeration adds up the probability of every possible combination of the things we don’t know.',
  elimination:'Variable elimination fixes what we know, then combines the tables and removes unknown variables one at a time.'};
-const combos=n=>n?combos(n-1).flatMap(c=>['T','F'].map(x=>c+x)):[''];   // first parent = first character
-const cap=(v,k)=>(k?'When '+net.parents[v].map((p,i)=>`${p} is ${TF(k[i])}`).join(' and ')+', how':'How')+` likely is <b>${v}</b> to be true?`;
-function toast(m){const t=$('toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove('on'),3000)}
+const prod=ls=>ls.reduce((a,l)=>a.flatMap(x=>l.map(y=>[...x,y])),[[]]);   // all combinations, first list varies slowest
+const keysFor=(n,v)=>prod(n.parents[v].map(p=>n.states[p])).map(c=>c.join(','));   // one key per combination of parent states
+const keysOf=v=>keysFor(net,v);
+const uni=v=>{const k=net.states[v].length,a=Array(k).fill(+(1/k).toFixed(6));a[k-1]=+(1-a.slice(0,-1).reduce((x,y)=>x+y,0)).toFixed(6);return a};
+const resetCpt=v=>{net.cpt[v]=Object.fromEntries(keysOf(v).map(k=>[k,uni(v)]))};
+const cap=(v,k)=>(k?'When '+net.parents[v].map((p,i)=>`${p} is ${k.split(',')[i]}`).join(' and ')+', how':'How')+` likely is each outcome of <b>${v}</b>?`;
+function toast(m,undo){const t=$('toast');t.textContent=m;
+ if(undo){const b=document.createElement('button');b.textContent='Undo';b.className='tundo';b.onclick=()=>{restore(undo);t.classList.remove('on');t.style.pointerEvents='none'};t.append(b)}
+ t.classList.add('on');t.style.pointerEvents=undo?'auto':'none';clearTimeout(toast.t);toast.t=setTimeout(()=>{t.classList.remove('on');t.style.pointerEvents='none'},undo?7000:3000)}
 const NOAPI='Can’t reach the calculator. Start it with “python server.py”, open http://localhost:8000 (don’t open index.html directly), or deploy it on Vercel.';
+const MOON='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>',
+ SUN='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+function centre(){try{const c=centre.c||(centre.c=document.createElement('canvas').getContext('2d'));   // put each glyph's ink exactly in the middle of its circle
+ document.querySelectorAll('.dig span').forEach(sp=>{const cs=getComputedStyle(sp),S=parseFloat(cs.fontSize);c.font=`${cs.fontWeight} ${cs.fontSize} ${cs.fontFamily}`;
+  const m=c.measureText(sp.textContent),base=(S-(m.fontBoundingBoxAscent+m.fontBoundingBoxDescent))/2+m.fontBoundingBoxAscent,
+   dy=S/2-(base-(m.actualBoundingBoxAscent-m.actualBoundingBoxDescent)/2),dx=(m.width-m.actualBoundingBoxRight+m.actualBoundingBoxLeft)/2;
+  sp.style.transform=`translate(${dx.toFixed(2)}px,${dy.toFixed(2)}px)`})}catch{}}
+function paintTheme(){const dark=document.documentElement.dataset.theme==='dark';$('themeBtn').innerHTML=dark?SUN:MOON;$('themeBtn').title=dark?'Switch to light mode':'Switch to dark mode'}
+function toggleTheme(){const t=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=t;try{localStorage.setItem('bs-theme',t)}catch{}paintTheme()}
 const toTop=()=>window.scrollTo(0,0);
 
 // ---------- navigation ----------
 function home(){screen='home';renderAll();toTop()}
+let lastScreen=null,fullRender=false,solved=false,tool='select',pick=null,arcFrom=null,drag=null;   // graph editor state
+const POS=()=>net.pos||(net.pos={});   // once an answer has been shown, it updates by itself when anything changes
+const auto=()=>{if(solved)solve()};
+const snap=()=>JSON.stringify({net,deps});
+function restore(u){const o=JSON.parse(u);net=o.net;deps=o.deps;renderAll()}
+function saveDraft(){try{if(net.variables.length)localStorage.setItem('bs-draft',JSON.stringify({net,deps,screen,qv,qval,ev,method,solved}))}catch{}}   // the network and where you were   // quietly kept in this browser
+function draft(){try{const d=JSON.parse(localStorage.getItem('bs-draft')||'null');return d&&d.net&&d.net.variables&&d.net.variables.length?d:null}catch{return null}}
+function resume(){if(net.variables.length)return create();const d=draft();if(!d)return;
+ try{loadNet(d.net);deps=d.deps||[];solved=false;screen=1;lastStep=1;renderAll();toTop()}catch(e){toast('Couldn’t restore your last network')}}
+const HINT={select:'Drag a variable to move it. Click a variable or an arrow to edit or delete it.',node:'Click an empty spot on the canvas to add a variable.',arc:'Click the cause first, then the variable that depends on it.'};
+const NR=v=>Math.max(28,Math.ceil(v.length*3.6+16));
+const edPt=e=>{const r=$('ed').getBoundingClientRect();return{x:e.clientX-r.left,y:e.clientY-r.top}};
+const edH=()=>Math.max(260,($('ed')&&$('ed').clientHeight)||460);
+const edW=()=>Math.max(300,($('ed')&&$('ed').clientWidth)||800);
+const edPanel=()=>pick&&pick.t==='n'&&net.variables.includes(pick.v)?vcard(pick.v)+`<p class="mut">Press Delete to remove it, or use ✕.</p>`:pick&&pick.t==='a'?`<div class="card"><p style="margin:0 0 10px"><b>${pick.p}</b> → <b>${pick.c}</b>: ${pick.c} depends on ${pick.p}.</p><button class="ghost sm" onclick="delArc()">Delete arrow</button></div>`:'';
+const edHint=()=>arcFrom?`Now click the variable that depends on <b>${arcFrom}</b>.`:HINT[tool];
+function edRefresh(){if(!$('ed'))return;$('edhint').innerHTML=edHint();$('edpanel').innerHTML=edPanel();drawEd()}   // canvas, hint and panel only
+function setTool(k){tool=k;arcFrom=null;fullRender=true;renderAll()}
+function ensurePos(){const P=POS(),W=edW(),H=edH();net.variables.forEach((v,i)=>{if(!P[v])P[v]=[70+(i%4)*(W-140)/3,70+Math.floor(i/4)*120];P[v][0]=Math.min(W-30,Math.max(30,P[v][0]));P[v][1]=Math.min(H-30,Math.max(30,P[v][1]))})}
+function hitNode(pt){const P=POS();return net.variables.find(v=>Math.hypot(pt.x-P[v][0],pt.y-P[v][1])<=NR(v)+4)}
+function curve(a,b,ra,rb){const dx=b[0]-a[0],dy=b[1]-a[1],l=Math.hypot(dx,dy)||1,ux=dx/l,uy=dy/l,sx=a[0]+ux*ra,sy=a[1]+uy*ra,ex=b[0]-ux*(rb+6),ey=b[1]-uy*(rb+6);
+ return `M${sx} ${sy}Q${(sx+ex)/2-uy*l*.1} ${(sy+ey)/2+ux*l*.1} ${ex} ${ey}`}
+function drawEd(){const svg=$('ed');if(!svg)return;const W=edW(),H=edH(),P=POS();ensurePos();svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+ let s='<defs><marker id="ea" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--ink)"/></marker></defs>';
+ for(const d of deps){if(!d.c||!d.p||!P[d.c]||!P[d.p])continue;const pa=curve(P[d.p],P[d.c],NR(d.p),NR(d.c)),on=pick&&pick.t==='a'&&pick.c===d.c&&pick.p===d.p;
+  s+=`<path d="${pa}" fill="none" style="stroke:${on?'var(--ac)':'var(--ink)'}" stroke-width="${on?4:2.4}" marker-end="url(#ea)"/><path class="hit" data-c="${d.c}" data-p="${d.p}" d="${pa}" fill="none" stroke="transparent" stroke-width="18" style="cursor:pointer"/>`}
+ for(const v of net.variables){const[x,y]=P[v],on=pick&&pick.t==='n'&&pick.v===v;
+  s+=`<g><circle cx="${x}" cy="${y}" r="${NR(v)}" style="fill:${arcFrom===v?'var(--ac)':'var(--paper)'};stroke:${on?'var(--ac)':'var(--ink)'}" stroke-width="${on?5:2.6}"/><text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" style="fill:${arcFrom===v?'var(--on)':'var(--ink)'}" pointer-events="none">${v}</text></g>`}
+ svg.innerHTML=s}
+function attachEd(){const svg=$('ed');svg.className.baseVal=tool;
+ svg.onpointerdown=e=>{const pt=edPt(e),hit=hitNode(pt);
+  if(tool==='node'){if(hit)return;if(net.variables.length>=MAX)return toast('Maximum is 10 variables');
+   let i=1;while(net.variables.includes('Var'+i))i++;const n='Var'+i;net.variables.push(n);net.states[n]=['true','false'];net.parents[n]=[];resetCpt(n);POS()[n]=[pt.x,pt.y];pick={t:'n',v:n};edRefresh();if(window.matchMedia&&!matchMedia('(pointer:coarse)').matches)setTimeout(()=>{const nm=document.querySelector('.vrow input');if(nm){nm.focus({preventScroll:true});nm.select()}},30);else toast(`Added ${n}. Rename it in the panel under the canvas`);return}   // ready to type its name (after the click finishes)
+  if(tool==='arc'){if(!hit)return;if(!arcFrom){arcFrom=hit;return edRefresh()}
+   if(arcFrom===hit){arcFrom=null;return edRefresh()}
+   const c=hit,p=arcFrom,bad=deps.some(x=>x.c===c&&x.p===p)?'That arrow is already there':reaches(c,p,deps)?`That would make a loop: ${p} already depends on ${c}`:'';
+   if(bad){arcFrom=null;edRefresh();return toast(bad)}deps.push({c,p});arcFrom=null;pick={t:'a',c,p};return edRefresh()}
+  if(hit){pick={t:'n',v:hit};drag={v:hit,dx:pt.x-POS()[hit][0],dy:pt.y-POS()[hit][1]};svg.setPointerCapture(e.pointerId);return edRefresh()}
+  const h=e.target.closest&&e.target.closest('.hit');pick=h?{t:'a',c:h.dataset.c,p:h.dataset.p}:null;edRefresh()};
+ svg.onpointermove=e=>{if(!drag)return;const pt=edPt(e),W=edW();POS()[drag.v]=[Math.min(W-30,Math.max(30,pt.x-drag.dx)),Math.min(edH()-30,Math.max(30,pt.y-drag.dy))];drawEd()};
+ svg.onpointerup=()=>{if(drag){drag=null;saveDraft()}}}
+function tidy(){const par={};net.variables.forEach(v=>par[v]=deps.filter(d=>d.c===v&&d.p).map(d=>d.p));const memo={},dp=v=>memo[v]??=par[v].length?1+Math.max(...par[v].map(dp)):0,rows={};
+ net.variables.forEach(v=>(rows[dp(v)]??=[]).push(v));const W=edW(),n=Object.keys(rows).length,P=POS();
+ for(const[d,ns]of Object.entries(rows))ns.forEach((v,i)=>P[v]=[W*(i+.5)/ns.length+(ns.length===1&&n>2?(d%2?70:-70):0),60+(edH()-120)*(n>1?d/(n-1):.5)]);drawEd();saveDraft()}
+function delArc(){const u=snap();deps=deps.filter(d=>!(d.c===pick.c&&d.p===pick.p));pick=null;renderAll();toast('Arrow removed',u)}
+function drawNext(){if(net.variables.length<2)return toast('Add at least two variables to connect them');deps=deps.filter(d=>d.c&&d.p);if(!applyDeps())return;screen=3;lastStep=3;renderAll();toTop()}
+addEventListener('keydown',e=>{if(screen!=='draw'||!pick||/INPUT|SELECT|TEXTAREA/.test(document.activeElement.tagName))return;if(e.key==='Delete'||e.key==='Backspace'){e.preventDefault();pick.t==='n'?delVar(pick.v):delArc()}});
+function restoreSession(){const d=draft();if(!d)return false;
+ try{loadNet(d.net);if(Array.isArray(d.deps))deps=d.deps;
+  screen=['home','examples','learn','draw',1,2,3,4].includes(d.screen)?d.screen:1;lastStep=typeof screen==='number'?screen:1;
+  if(net.states[d.qv]){qv=d.qv;if(net.states[qv].includes(d.qval))qval=d.qval}
+  ev=(d.ev||[]).filter(e=>net.states[e.v]&&net.states[e.v].includes(e.val)&&e.v!==qv);
+  method=d.method==='elimination'?'elimination':'enumeration';solved=!!d.solved&&screen===4;
+  renderAll();if(screen!=='home')toast('Welcome back. Your last work was restored');return true}
+ catch{return false}}
 function nav(k){if(k==='create')return create();screen=k;renderAll();toTop()}
 function create(){screen=lastStep;renderAll();toTop()}   // pick up where you left off
 function newNet(){if(net.variables.length&&!confirm('Start a new network? The current one will be cleared. Use Save first if you want to keep it.'))return;
- net={variables:[],parents:{},cpt:{}};deps=[];ev=[];qv='';lastStep=1;screen=1;renderAll();toTop()}
+ net={variables:[],states:{},parents:{},cpt:{}};deps=[];ev=[];qv='';lastStep=1;screen=1;solved=false;try{localStorage.removeItem('bs-draft')}catch{}renderAll();toTop()}
 function jump(n){screen=n;renderAll();toTop()}
 function setQ(v){if(ev.some(e=>e.v===v)){ev=ev.filter(e=>e.v!==v);toast(`${v} is now the question, so it was removed from what we know`)}qv=v;renderAll()}
-function addEv(){const f=net.variables.find(v=>v!==qv&&!ev.some(e=>e.v===v));if(f){ev.push({v:f,val:'T'});renderAll()}}
+function addEv(){const f=net.variables.find(v=>v!==qv&&!ev.some(e=>e.v===v));if(f){ev.push({v:f,val:net.states[f][0]});renderAll()}}
 const fv=x=>+(1-Math.min(1,Math.max(0,Number(x)||0))).toFixed(4);   // P(false) = 1 - P(true)
 function depthOf(v,memo){return memo[v]??=net.parents[v].length?1+Math.max(...net.parents[v].map(p=>depthOf(p,memo))):0}
 function back(n){screen=n-1;renderAll();toTop()}
 function next(n){
  if(n===1&&net.variables.length<2)return toast('Add at least two variables to connect them');
  if(n===2&&!applyDeps())return;
+ if(n===3&&!probsOk())return;
  screen=n+1;renderAll();toTop()}
-function loadExample(i){const x=EXS[i];loadNet(x.n);qv=x.q;ev=x.e.map(e=>({...e}));renderAll();toTop()}
+function loadExample(i){const x=EXS[i];loadNet(x.n);qv=x.q;qval=x.v||qval;ev=x.e.map(e=>({...e}));solved=true;renderAll();toTop()}   // examples show their answer straight away
 
 // ---------- step 1: variables ----------
 function addVar(){
  if(net.variables.length>=MAX)return toast('Maximum is 10 variables');
  let i=1;while(net.variables.includes('Var'+i))i++;const n='Var'+i;   // placeholder to type over
- net.variables.push(n);net.parents[n]=[];net.cpt[n]={'':0.5};renderAll();
- const all=document.querySelectorAll('.vrow input'),l=all[all.length-1];l.focus();l.select()}
-function setParents(v,list){net.parents[v]=net.variables.filter(x=>list.includes(x));
- net.cpt[v]=Object.fromEntries(combos(net.parents[v].length).map(k=>[k,0.5]))}
-function delVar(v){net.variables=net.variables.filter(x=>x!==v);delete net.parents[v];delete net.cpt[v];
+ net.variables.push(n);net.states[n]=['true','false'];net.parents[n]=[];resetCpt(n);renderAll();
+ const all=document.querySelectorAll('.vrow input'),l=all[all.length-1];if(l){l.focus();l.select()}}
+function setParents(v,list){net.parents[v]=net.variables.filter(x=>list.includes(x));resetCpt(v)}
+function stChanged(v){resetCpt(v);net.variables.forEach(c=>{if(net.parents[c].includes(v))resetCpt(c)});renderAll()}   // tables depend on states
+function addState(v){const s=net.states[v];if(s.length>=6)return toast('Up to 6 states per variable');let i=s.length+1;while(s.includes('State'+i))i++;s.push('State'+i);stChanged(v)}
+function delState(v,i){if(net.states[v].length<=2)return toast('A variable needs at least two states');const u=snap();net.states[v].splice(i,1);stChanged(v);toast('State removed',u)}
+function renState(v,i,x){x=x.trim();const s=net.states[v],o=s[i];if(x===o)return;
+ if(!/^\w{1,12}$/.test(x)||s.includes(x)){toast('Use 1-12 letters, numbers or _, not already used for this variable');return renderAll()}
+ s[i]=x;   // numbers are kept: other tables only mention this state by name in their keys
+ for(const c of net.variables){const j=net.parents[c].indexOf(v);if(j<0)continue;
+  net.cpt[c]=Object.fromEntries(Object.entries(net.cpt[c]).map(([k,a])=>{const q=k.split(',');if(q[j]===o)q[j]=x;return[q.join(','),a]}))}
+ renderAll()}
+function preset(v,val){const P={yn:['Yes','No'],tf:['true','false'],lmh:['Low','Medium','High']};if(P[val]){net.states[v]=[...P[val]];stChanged(v)}}
+function delVar(v){const u=snap();net.variables=net.variables.filter(x=>x!==v);delete net.parents[v];delete net.cpt[v];delete net.states[v];if(net.pos)delete net.pos[v];
  deps=deps.filter(d=>d.c!==v&&d.p!==v);
- for(const c of net.variables)if(net.parents[c].includes(v))setParents(c,net.parents[c].filter(x=>x!==v));renderAll()}
+ for(const c of net.variables)if(net.parents[c].includes(v))setParents(c,net.parents[c].filter(x=>x!==v));renderAll();toast(`Removed ${v}`,u)}
 function rename(o,n){n=n.trim();if(n===o)return;
  if(!/^\w{1,12}$/.test(n)||net.variables.includes(n)){toast('Use 1–12 letters, numbers or _, and a name not used yet');return renderAll()}
  net.variables=net.variables.map(v=>v===o?n:v);
- net.parents[n]=net.parents[o];delete net.parents[o];net.cpt[n]=net.cpt[o];delete net.cpt[o];
+ net.parents[n]=net.parents[o];delete net.parents[o];net.cpt[n]=net.cpt[o];delete net.cpt[o];net.states[n]=net.states[o];delete net.states[o];if(net.pos&&net.pos[o]){net.pos[n]=net.pos[o];delete net.pos[o]}
  for(const c of net.variables)net.parents[c]=net.parents[c].map(p=>p===o?n:p);
  deps.forEach(d=>{if(d.c===o)d.c=n;if(d.p===o)d.p=n});
  if(qv===o)qv=n;ev.forEach(e=>{if(e.v===o)e.v=n});renderAll()}
@@ -152,120 +287,167 @@ function applyDeps(){   // turn the rows into net.parents; keep old probabilitie
  for(const v of net.variables){const np=net.variables.filter(x=>deps.some(d=>d.c===v&&d.p===x)),old=net.parents[v];
   if(!(np.length===old.length&&np.every(x=>old.includes(x))))setParents(v,np)}
  return true}
-function setP(v,k,x){net.cpt[v][k]=Math.min(1,Math.max(0,Number(x)||0))}
+function setP(v,k,i,x){const a=net.cpt[v][k],n=a.length;a[i]=+Math.min(1,Math.max(0,Number(x)||0)).toFixed(6);
+ a[n-1]=+Math.max(0,1-a.slice(0,-1).reduce((t,y)=>t+y,0)).toFixed(6);saveDraft()}   // last state = 1 - the others
+function upd(el){const r=el.closest('.num'),sum=[...r.querySelectorAll('input[type=number]')].reduce((t,x)=>t+(Number(x.value)||0),0);
+ r.querySelector('.fv').textContent=+Math.max(0,1-sum).toFixed(6);r.classList.toggle('bad',sum>1.000001)}
+function pin(el,v,k,i){const x=Math.min(1,Math.max(0,Number(el.value)||0)),l=el.closest('.sv');   // slider and number box stay in step
+ l.querySelector(el.type==='range'?'input[type=number]':'input[type=range]').value=x;setP(v,k,i,x);upd(el)}
+function probsOk(){for(const v of net.variables)for(const[k,a]of Object.entries(net.cpt[v]))
+ if(a.slice(0,-1).reduce((t,y)=>t+y,0)>1.000001){toast(`The numbers for ${v}${k?' ('+k.replace(/,/g,', ')+')':''} add up to more than 1`);return false}return true}
 
 // ---------- screens ----------
+const vcard=v=>`<div class="vc"><div class="row vrow"><input value="${v}" maxlength="12" aria-label="Variable name" onkeydown="if(event.key==='Enter'){this.blur();if(screen===1)addVar()}" onchange="rename('${v}',this.value)">
+  <select aria-label="Quick states" onchange="preset('${v}',this.value)"><option value="">Quick states…</option><option value="tf">True / False</option><option value="yn">Yes / No</option><option value="lmh">Low / Medium / High</option></select>
+  <button class="x" title="Remove variable" onclick="delVar('${v}')">✕</button></div>
+  <div class="row"><span class="mut">States:</span>${net.states[v].map((x,i)=>`<span class="st"><input value="${x}" maxlength="12" aria-label="State name" onchange="renState('${v}',${i},this.value)"><button class="x" title="Remove state" onclick="delState('${v}',${i})">✕</button></span>`).join('')}
+  <button class="add sm" onclick="addState('${v}')"><span>+</span>state</button></div></div>`;
 const sel=(cur,call,blank,skip=[])=>`<select onchange="${call}">${blank?'<option value="">choose…</option>':''}${net.variables.filter(v=>v===cur||!skip.includes(v)).map(v=>`<option ${v===cur?'selected':''}>${v}</option>`).join('')}</select>`;
-const tf=(cur,call)=>`<select onchange="${call}">${['T','F'].map(x=>`<option value="${x}" ${x===cur?'selected':''}>${TF(x)}</option>`).join('')}</select>`;
-const frame=(n,title,sub,body,nxt)=>`<section class="step${n===4?' wide':''}"><div class="prog">${['Variables','Dependencies','Probabilities','Network'].map((t,j)=>`<button class="pst ${j+1<n?'done':j+1===n?'cur':''}" ${j+1<n?`onclick="jump(${j+1})"`:'tabindex="-1"'}><b>${j+1<n?'✓':j+1}</b>${t}</button>`).join('')}</div>
+const ssel=(v,cur,call)=>`<select onchange="${call}">${(net.states[v]||[]).map(x=>`<option ${x===cur?'selected':''}>${x}</option>`).join('')}</select>`;
+const frame=(n,title,sub,body,nxt)=>`<section class="step${n===4?' wide':''}"><div class="prog">${['Variables','Dependencies','Probabilities','Network'].map((t,j)=>`<button class="pst ${j+1<n?'done':j+1===n?'cur':''}" ${j+1<n?`onclick="jump(${j+1})"`:'tabindex="-1"'}><b class="dig"><span>${j+1<n?'✓':j+1}</span></b>${t}</button>`).join('')}</div>
  <p class="kicker">Step ${n} of 4</p><h2>${title}</h2><p class="sub">${sub}</p>${body}
  <div class="nav"><button class="ghost" onclick="${n>1?`back(${n})`:'home()'}">← Back</button>${nxt?`<button class="btn" onclick="next(${n})">${nxt}</button>`:'<span></span>'}</div></section>`;
-function renderAll(){
+function renderAll(keep){   // keep=true: don't rebuild while dragging
  const vs=net.variables;
+ if(pick&&((pick.t==='n'&&!vs.includes(pick.v))||(pick.t==='a'&&!deps.some(d=>d.c===pick.c&&d.p===pick.p))))pick=null;
  if(typeof screen==='number')lastStep=screen;
  const cur=typeof screen==='number'?'create':screen;
- $('links').innerHTML=[['home','Home'],['create','Create network'],['examples','Examples'],['learn','Learn']].map(([k,t])=>`<button class="lk ${cur===k?'on':''}" onclick="nav('${k}')">${t}</button>`).join('');
+ $('links').innerHTML=[['home','Home'],['create','Create'],['draw','Draw'],['examples','Examples'],['learn','Learn']].map(([k,t])=>`<button class="lk ${cur===k?'on':''}" onclick="nav('${k}')">${t}</button>`).join('');
  if(!vs.includes(qv))qv=vs[0]||'';ev=ev.filter((e,i)=>vs.includes(e.v)&&e.v!==qv&&ev.findIndex(x=>x.v===e.v)===i);
+ if(net.states[qv]&&!net.states[qv].includes(qval))qval=net.states[qv][0];ev.forEach(e=>{if(!net.states[e.v].includes(e.val))e.val=net.states[e.v][0]});
  $('saveBtn').style.display=vs.length?'':'none';
+ if(screen==='draw'&&lastScreen==='draw'&&!fullRender&&$('ed')){edRefresh();saveDraft();return}   // same page: refresh only canvas, hint and panel
+ fullRender=false;
  let h='';
  if(screen==='home')h=`<section class="home"><div>
-  <p class="kicker">A friendly guide to</p><h1>Bayesian networks</h1>
+  <p class="kicker">A friendly guide to</p><h1>Bayesian <em>networks</em></h1>
   <p class="lead">Bayes’ idea is simple: when you learn something new, update how likely things are.</p>
-  <p>A Bayesian network is a map of things that can be true or false, and which of them influence each other. Hear an alarm ring and a burglary becomes more likely. Then learn there was an earthquake, and a burglary becomes less likely again. BayeSynapse works out exactly how much.</p>
+  <p>A Bayesian network is a map of things that can be in different states, like true or false or low, medium and high, and which of them influence each other. Hear an alarm ring and a burglary becomes more likely. Then learn there was an earthquake, and a burglary becomes less likely again. BayeSynapse works out exactly how much.</p>
+  <div class="pills"><span>Up to 10 variables</span><span>Any number of states</span><span>Exact answers</span><span>Step-by-step working</span></div>
   <h3 style="margin-top:22px">How to use it</h3>
-  <ol class="how"><li><b>Add your variables</b><span>The things you are studying, like Rain or Alarm.</span></li>
-  <li><b>Say what depends on what</b><span>For example, “WetGrass is dependent on Rain”.</span></li>
-  <li><b>Fill in the probabilities</b><span>How likely each thing is.</span></li>
-  <li><b>See your network and ask questions</b><span>Get the answer along with every step of the working.</span></li></ol>
-  <div class="row"><button class="btn" onclick="newNet()">Create a network</button><button class="ghost" onclick="$('file').click()">Open a saved network</button></div>
-  <p class="alt">Not sure yet? <a onclick="nav('examples')">Browse examples</a> or <a onclick="nav('learn')">read the basics</a>.</p></div>
+  <ol class="how"><li><i class="dig"><span>1</span></i><b>Add your variables</b><span>The things you are studying, like Rain or Alarm.</span></li>
+  <li><i class="dig"><span>2</span></i><b>Say what depends on what</b><span>For example, “WetGrass is dependent on Rain”.</span></li>
+  <li><i class="dig"><span>3</span></i><b>Fill in the probabilities</b><span>How likely each thing is.</span></li>
+  <li><i class="dig"><span>4</span></i><b>See your network and ask questions</b><span>Get the answer along with every step of the working.</span></li></ol>
+  <div class="row">${draft()?'<button class="btn" onclick="resume()">Continue your network</button>':''}<button class="${draft()?'ghost':'btn'}" onclick="newNet()">Create a network</button><button class="ghost" onclick="$('file').click()">Open a saved network</button></div>
+  <p class="alt">Not sure yet? <a onclick="nav('examples')">Browse examples</a>, <a onclick="nav('draw')">draw a graph</a> or <a onclick="nav('learn')">read the basics</a>.</p></div>
   <svg id="hero" viewBox="0 0 400 360" aria-hidden="true"></svg></section>`;
-if(screen==='examples')h=`<section class="step"><p class="kicker">Examples</p><h2>Start from a worked example</h2><p class="sub">Open one to see a finished network, then change anything you like.</p>
+if(screen==='draw')h=`<section class="step wide"><p class="kicker">Graph editor</p><h2>Draw your network</h2><p class="sub">Place variables on the canvas and connect them. An arrow points from cause to effect.</p>
+  <div class="card"><div class="toolbar">${[['select','Move'],['node','+ Variable'],['arc','→ Arrow']].map(([k,t])=>`<button class="ghost sm ${tool===k?'on':''}" onclick="setTool('${k}')">${t}</button>`).join('')}<span class="grow"></span><button class="ghost sm" onclick="tidy()">Tidy layout</button></div>
+  <p id="edhint" class="mut" style="margin:4px 0 10px">${edHint()}</p><svg id="ed" role="img" aria-label="Graph editor"></svg></div><div id="edpanel">${edPanel()}</div>
+  <div class="nav"><button class="ghost" onclick="nav('create')">← Back to lists</button><button class="btn" onclick="drawNext()">Next: probabilities</button></div></section>`;
+ if(screen==='examples')h=`<section class="step"><p class="kicker">Examples</p><h2>Start from a worked example</h2><p class="sub">Open one to see a finished network, then change anything you like.</p>
   ${EXS.map((x,i)=>`<div class="card"><h3>${x.t}</h3><p class="mut" style="margin:0 0 14px">${x.d}</p><button class="btn" onclick="loadExample(${i})">Open this example</button></div>`).join('')}</section>`;
  if(screen==='learn')h=`<section class="step"><p class="kicker">Learn</p><h2>The basics, in plain words</h2><p class="sub">Everything you need to use BayeSynapse.</p>
-  ${[['Variable','Something that can be true or false, like Rain or Alarm.'],['Dependency','When one variable directly influences another. “WetGrass is dependent on Rain” means rain changes how likely wet grass is.'],
-  ['Probability table','For each variable, how likely it is to be true for every combination of the things it depends on.'],['Evidence','What you already know for certain when you ask a question, like “the alarm is ringing”.'],
+  ${[['Variable','Something you want to study that can be in one of several states, like Alarm (on or off) or Weather (sunny, cloudy or rainy).'],['Dependency','When one variable directly influences another. “WetGrass is dependent on Rain” means rain changes how likely wet grass is.'],
+  ['Probability table','For each variable, how likely each of its states is, for every combination of states of the things it depends on.'],['Evidence','What you already know for certain when you ask a question, like “the alarm is ringing”.'],
   ['Enumeration','Works out an answer by adding up every possible case.'],['Variable elimination','Gives the same answer with fewer steps, by combining tables and removing unknowns one at a time.']]
   .map(([a,b])=>`<div class="card"><h3>${a}</h3><p style="margin:0">${b}</p></div>`).join('')}<div class="row"><button class="btn" onclick="newNet()">Create a network</button></div></section>`;
- if(screen===1)h=frame(1,'What are you studying?','Add each thing that can be true or false, up to 10. Click the plus, type a name, and press Enter for the next one.',
-  `${vs.map(v=>`<div class="row vrow"><input value="${v}" maxlength="12" aria-label="Variable name" onkeydown="if(event.key==='Enter'){this.blur();addVar()}" onchange="rename('${v}',this.value)"><button class="x" title="Remove" onclick="delVar('${v}')">✕</button></div>`).join('')}
-  <button class="add" onclick="addVar()" ${vs.length>=MAX?'disabled':''}><span>+</span>Add variable</button> <span class="mut">${vs.length} of 10</span>`,'Next');
+ if(screen===1)h=frame(1,'What are you studying?','Add each thing you want to study. Every one has states, like true/false or Low/Medium/High. Up to 10 variables, 6 states each.',
+  `${vs.map(vcard).join('')}
+  <div class="row" style="margin-top:4px"><button class="add" onclick="addVar()" ${vs.length>=MAX?'disabled':''}><span>+</span>Add variable</button><span class="mut">${vs.length} of 10</span></div>
+  <p class="mut" style="margin-top:14px">Prefer to draw it? <a class="lnk" onclick="nav('draw')">Open the graph editor</a></p>`,'Next');
  if(screen===2)h=frame(2,'What depends on what?','Pick two variables for each line. Anything you leave out doesn’t depend on anything.',
   `${deps.map((d,i)=>`<div class="dep">${sel(d.c,`setDep(${i},'c',this.value)`,1)}<span>dependent on</span>${sel(d.p,`setDep(${i},'p',this.value)`,1)}<button class="x" title="Remove" onclick="delDep(${i})">✕</button></div>`).join('')}
   <button class="add" onclick="addDep()"><span>+</span>Add dependency</button>`,'Next');
  if(screen===3){const memo={},srt=[...vs].sort((a,b)=>depthOf(a,memo)-depthOf(b,memo)),   // causes before effects
    roots=srt.filter(v=>!net.parents[v].length),rest=srt.filter(v=>net.parents[v].length);
-  const pcard=v=>`<div class="card"><h3>${v}</h3>${net.parents[v].length?`<p class="mut" style="margin:0 0 4px">depends on ${net.parents[v].join(', ')}</p>`:''}${Object.keys(net.cpt[v]).map(k=>`<label class="pr"><span>${cap(v,k)}</span><span class="num"><span class="mut">true</span>
-  <input type="number" min="0" max="1" step="0.01" value="${net.cpt[v][k]}" oninput="this.parentNode.querySelector('.fv').textContent=fv(this.value)" onchange="setP('${v}','${k}',this.value);this.value=net.cpt['${v}']['${k}'];this.parentNode.querySelector('.fv').textContent=fv(this.value)"><span class="mut">false</span><b class="fv">${fv(net.cpt[v][k])}</b></span></label>`).join('')}</div>`;
-  h=frame(3,'How likely is each one?','Enter how likely each one is to be true, from 0 to 1. The false value fills in by itself.',
+  const pcard=v=>{const S=net.states[v];return `<div class="card"><h3>${v}</h3>${net.parents[v].length?`<p class="mut" style="margin:0 0 4px">depends on ${net.parents[v].join(', ')}</p>`:''}${Object.keys(net.cpt[v]).map(k=>`<div class="pr"><span>${cap(v,k)}</span><span class="num">
+  ${S.slice(0,-1).map((x,i)=>`<label class="sv"><span class="mut">${x}</span><span class="sl"><input type="range" min="0" max="1" step="0.01" value="${net.cpt[v][k][i]}" aria-label="${x} slider" oninput="pin(this,'${v}','${k}',${i})">
+  <input type="number" min="0" max="1" step="0.01" value="${net.cpt[v][k][i]}" aria-label="${x} probability" oninput="pin(this,'${v}','${k}',${i})" onchange="this.value=net.cpt['${v}']['${k}'][${i}];pin(this,'${v}','${k}',${i})"></span></label>`).join('')}
+  <span class="sv"><span class="mut">${S[S.length-1]}</span><b class="fv">${net.cpt[v][k][S.length-1]}</b></span></span></div>`).join('')}</div>`};
+  h=frame(3,'How likely is each one?','Enter the first numbers, from 0 to 1. The last state fills in by itself so everything adds up to 1.',
    (roots.length?`<h3 class="grp">Start here: nothing influences these</h3>`+roots.map(pcard).join(''):'')+
    (rest.length?`<h3 class="grp">Then these: they depend on the ones above</h3>`+rest.map(pcard).join(''):''),'See my network')}
  if(screen===4)h=frame(4,'Your network','Arrows point from cause to effect. Now ask it a question.',
   `<div class="card"><svg id="svg" viewBox="0 0 640 220" role="img" aria-label="Your Bayesian network"></svg>
   <div class="legend"><span><i style="background:var(--ac)"></i>What you’re asking about</span><span><i style="background:var(--teal)"></i>What you already know</span></div></div>
-  <div class="card"><div class="q">How likely is ${sel(qv,"setQ(this.value)",0,ev.map(e=>e.v))} to be ${tf(qval,"qval=this.value")}${ev.length?', if we know that:':'?'}</div>
-  ${ev.map((e,i)=>`<div class="row">${sel(e.v,`ev[${i}].v=this.value;renderAll()`,0,[qv,...ev.filter((_,j)=>j!==i).map(x=>x.v)])} is ${tf(e.val,`ev[${i}].val=this.value`)}<button class="x" title="Remove" onclick="ev.splice(${i},1);renderAll()">✕</button></div>`).join('')}
+  <div class="card"><div class="q">How likely is ${sel(qv,"setQ(this.value)",0,ev.map(e=>e.v))} to be ${ssel(qv,qval,"qval=this.value;auto()")}${ev.length?', if we know that:':'?'}</div>
+  ${ev.map((e,i)=>`<div class="row">${sel(e.v,`ev[${i}].v=this.value;renderAll()`,0,[qv,...ev.filter((_,j)=>j!==i).map(x=>x.v)])} is ${ssel(e.v,e.val,`ev[${i}].val=this.value;auto()`)}<button class="x" title="Remove" onclick="ev.splice(${i},1);renderAll()">✕</button></div>`).join('')}
   <button class="add" onclick="addEv()" ${vs.some(v=>v!==qv&&!ev.some(e=>e.v===v))?'':'disabled'}><span>+</span>Add something we know</button>
   <div class="row" style="margin-top:14px"><button class="btn" onclick="solve()">Work it out</button></div><div id="res"></div></div>`,'');
- $('main').innerHTML=h;
- if(screen==='home')hero();if(screen===4)draw()}
+ const was=lastScreen,y0=window.scrollY;$('main').classList.toggle('enter',screen!==was);$('main').innerHTML=h;lastScreen=screen;if(screen===was)window.scrollTo(0,y0);
+ if(screen==='home')hero();if(screen===4)draw();if(screen==='draw'){attachEd();drawEd()}saveDraft();centre();if(screen===4&&solved)solve()}
 
 // ---------- drawing ----------
-function hero(){let r=7;const rnd=()=>(r=r*16807%2147483647)/2147483647,P=Array.from({length:18},()=>[30+rnd()*340,30+rnd()*300]);let s='';
- P.forEach((a,i)=>P.map((b,j)=>[j,Math.hypot(a[0]-b[0],a[1]-b[1])]).filter(x=>x[0]!==i).sort((x,y)=>x[1]-y[1]).slice(0,2)
-  .forEach(([j])=>s+=`<line x1="${a[0]}" y1="${a[1]}" x2="${P[j][0]}" y2="${P[j][1]}" stroke="#a3371a" stroke-opacity=".4" stroke-width="1.6"/>`));
- P.forEach((a,i)=>s+=`<circle class="pulse" style="animation-delay:${(i%6)*.5}s" cx="${a[0]}" cy="${a[1]}" r="${i%4?5:9}" fill="${i%4?'#1d1814':'#a3371a'}"/>`);
- $('hero').innerHTML=s}
-function draw(){const vs=net.variables,L={},R=26;
+function hero(){let r=11;const rnd=()=>(r=r*16807%2147483647)/2147483647,
+ H='M200 50C140 30 70 60 62 150C54 230 130 276 200 272Z',L='translate(-5 0)',R='translate(405 0) scale(-1 1)',P=[];   // left hemisphere, mirrored for the right
+ for(let y=64;y<=268;y+=30)for(let x=70;x<=330;x+=32){const px=x+(rnd()-.5)*14,py=y+(rnd()-.5)*14,m=Math.min(px,400-px);   // neurons on a loose grid inside the brain
+  if(((m-132)/66)**2+((py-160)/104)**2<.82&&Math.abs(px-200)>14)P.push([px,py])}
+ let net='',dots='';
+ P.forEach((a,i)=>P.forEach((b,j)=>{if(j>i&&Math.hypot(a[0]-b[0],a[1]-b[1])<50){
+  net+=`<line x1="${a[0]}" y1="${a[1]}" x2="${b[0]}" y2="${b[1]}" style="stroke:var(--ac)" stroke-opacity=".5" stroke-width="1.4"/>`;
+  if((i+j)%9===0)dots+=`<circle r="2.8" style="fill:var(--ac)"><animateMotion dur="${2+(i+j)%3}s" repeatCount="indefinite" path="M${a[0]} ${a[1]}L${b[0]} ${b[1]}"/></circle>`}}));
+ P.forEach((a,i)=>net+=`<circle class="pulse" style="animation-delay:${(i%7)*.45}s;fill:var(${i%6?'--ink':'--ac'})" cx="${a[0]}" cy="${a[1]}" r="${i%6?3.2:5.5}"/>`);
+ const gy=[84,120,156,192,228,262].map((y,k)=>`<path class="gy" d="M${66+k%2*16} ${y}q16 -16 32 0t32 0t32 0t32 0"/>`).join('');   // folds
+ $('hero').innerHTML=`<defs><clipPath id="bc"><path d="${H}" transform="${L}"/><path d="${H}" transform="${R}"/></clipPath>
+  <radialGradient id="bgl" cx="50%" cy="45%" r="55%"><stop offset="0" style="stop-color:var(--ac)" stop-opacity=".28"/><stop offset="1" style="stop-color:var(--ac)" stop-opacity="0"/></radialGradient></defs>
+  <ellipse cx="200" cy="170" rx="195" ry="165" fill="url(#bgl)"/>
+  <path class="bo" d="${H}" transform="${L}"/><path class="bo" d="${H}" transform="${R}"/>
+  <g clip-path="url(#bc)"><g transform="${L}">${gy}</g><g transform="${R}">${gy}</g>${net}${dots}</g>`}
+function draw(){const vs=net.variables,L={},rad=v=>Math.max(26,Math.ceil(v.length*3.6+14));   // circle grows with the name
  const lay=v=>L[v]??=net.parents[v].length?1+Math.max(...net.parents[v].map(lay)):0;
  vs.forEach(lay);const rows={};vs.forEach(v=>(rows[L[v]]??=[]).push(v));
- const n=Object.keys(rows).length||1,W=640,H=Math.max(220,n*110),pos={};
- for(const[d,ns]of Object.entries(rows))ns.forEach((v,i)=>pos[v]=[W*(i+.5)/ns.length,44+(H-88)*(n>1?d/(n-1):.5)]);
- let s='<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" fill="#1d1814"/></marker></defs>';
+ let n=Object.keys(rows).length||1,W=Math.max(300,Math.min(640,$('svg').clientWidth||640)),H=Math.max(220,n*110),pos={};
+ for(const[d,ns]of Object.entries(rows))ns.forEach((v,i)=>pos[v]=[W*(i+.5)/ns.length+(ns.length===1&&n>2?(d%2?60:-60):0),44+(H-88)*(n>1?d/(n-1):.5)]);
+if(vs.length&&vs.every(v=>net.pos&&net.pos[v])){const xs=vs.map(v=>net.pos[v][0]),ys=vs.map(v=>net.pos[v][1]),m=56,x0=Math.min(...xs),y0=Math.min(...ys),sx=Math.max(...xs)-x0||1,sy=Math.max(...ys)-y0||1,sc=Math.min((W-2*m)/sx,1.3,(460-2*m)/sy);
+  H=Math.max(240,sy*sc+2*m);vs.forEach(v=>pos[v]=[m+(W-2*m-sx*sc)/2+(net.pos[v][0]-x0)*sc,m+(net.pos[v][1]-y0)*sc])}   // keep the layout you drew
+ let s='<defs><marker id="a" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto"><path d="M0 0L10 5L0 10z" style="fill:var(--ink)"/></marker></defs>';
  for(const c of vs)for(const p of net.parents[c]){   // curved "axon" with a travelling signal dot
   const[x1,y1]=pos[p],[x2,y2]=pos[c],dx=x2-x1,dy=y2-y1,l=Math.hypot(dx,dy),ux=dx/l,uy=dy/l,
-  sx=x1+ux*R,sy=y1+uy*R,ex=x2-ux*(R+6),ey=y2-uy*(R+6),mx=(sx+ex)/2-uy*l*.1,my=(sy+ey)/2+ux*l*.1,d=`M${sx} ${sy}Q${mx} ${my} ${ex} ${ey}`;
-  s+=`<path d="${d}" fill="none" stroke="#1d1814" stroke-width="2.2" marker-end="url(#a)"/><circle r="3.6" fill="#a3371a"><animateMotion dur="2.6s" repeatCount="indefinite" path="${d}"/></circle>`}
- for(const v of vs){const[x,y]=pos[v],e=ev.some(q=>q.v===v),q=v===qv&&!e,f=e?'#0f5c58':q?'#a3371a':'#fffaf0',t=e||q?'#fff':'#1d1814';
-  s+=`<g style="cursor:pointer" onclick="setQ('${v}')"><circle cx="${x}" cy="${y}" r="${R}" fill="${f}" stroke="#1d1814" stroke-width="2.6"/>
-  <text x="${x}" y="${y+4}" text-anchor="middle" font-size="${v.length>7?9.5:12.5}" font-weight="700" fill="${t}" pointer-events="none">${v}</text></g>`}
+  sx=x1+ux*rad(p),sy=y1+uy*rad(p),ex=x2-ux*(rad(c)+6),ey=y2-uy*(rad(c)+6),mx=(sx+ex)/2-uy*l*.1,my=(sy+ey)/2+ux*l*.1,d=`M${sx} ${sy}Q${mx} ${my} ${ex} ${ey}`;
+  s+=`<path d="${d}" fill="none" style="stroke:var(--ink)" stroke-width="2.2" marker-end="url(#a)"/><circle r="3.6" style="fill:var(--ac)"><animateMotion dur="2.6s" repeatCount="indefinite" path="${d}"/></circle>`}
+ for(const v of vs){const[x,y]=pos[v],e=ev.some(q=>q.v===v),q=v===qv&&!e,f=e?'var(--teal)':q?'var(--ac)':'var(--paper)',t=e||q?'var(--on)':'var(--ink)';
+  s+=`<g style="cursor:pointer" onclick="setQ('${v}')"><circle cx="${x}" cy="${y}" r="${rad(v)}" style="fill:${f};stroke:var(--ink)" stroke-width="2.6"/>
+  <text x="${x}" y="${y+4}" text-anchor="middle" font-size="12" font-weight="700" style="fill:${t}" pointer-events="none">${v}</text></g>`}
  $('svg').setAttribute('viewBox',`0 0 ${W} ${H}`);$('svg').innerHTML=s}
 
 // ---------- solving (Python backend) ----------
+const call=async state=>{const r=await fetch('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},
+  body:JSON.stringify({network:net,query:{[qv]:state},evidence:Object.fromEntries(ev.map(e=>[e.v,e.val])),method})});
+ const t=await r.text();let d;try{d=JSON.parse(t)}catch{throw Error(NOAPI)}
+ if(!r.ok)throw Error(d.error||NOAPI);return d};
 async function solve(){
- if(!qv)return;
- const evidence={};ev.forEach(e=>evidence[e.v]=e.val==='T');
- $('res').innerHTML='<p class="mut">Working it out…</p>';
- try{const r=await fetch('/api/solve',{method:'POST',headers:{'Content-Type':'application/json'},
-   body:JSON.stringify({network:net,query:{[qv]:qval==='T'},evidence,method})});
-  const t=await r.text();let d;try{d=JSON.parse(t)}catch{throw Error(NOAPI)}
-  if(!r.ok)throw Error(d.error||NOAPI);
-  const given=ev.length?`, given that ${ev.map(e=>`${e.v} is ${TF(e.val)}`).join(' and ')},`:'',p=(d.value*100).toFixed(2);
-  $('res').innerHTML=`<div style="border-top:2px solid var(--line);margin-top:18px;padding-top:18px"><p id="sent" style="font:19px var(--serif);margin:0 0 10px"></p>
-  <div class="big">${p}<small>%</small></div><div class="bar"><i style="width:${d.value*100}%"></i></div>
+ if(!qv)return;if(!solved)$('res').innerHTML='<p class="mut">Working it out…</p>';
+ try{const S=net.states[qv],all=await Promise.all(S.map(call)),i=S.indexOf(qval),d=all[i],pct=x=>(x*100).toFixed(1),C=2*Math.PI*52;   // one answer per state of the variable
+  const given=ev.length?`, given that ${ev.map(e=>`${e.v} is ${e.val}`).join(' and ')},`:'';
+  const was=document.querySelector('#res details'),wasOpen=!was||was.open;
+  $('res').innerHTML=`<div style="border-top:2px solid var(--line);margin-top:18px;padding-top:18px"><div class="resgrid">
+  <svg class="ring" viewBox="0 0 120 120" role="img" aria-label="${pct(d.value)} percent"><circle cx="60" cy="60" r="52" class="rt"/><circle cx="60" cy="60" r="52" class="rf" style="stroke-dasharray:${C*d.value} ${C}"/><text x="60" y="67" text-anchor="middle" class="rn">${pct(d.value)}%</text></svg>
+  <div class="dist"><p id="sent" aria-live="polite" style="font:19px var(--serif);margin:0 0 10px"></p>${S.map((x,j)=>`<div class="drow ${j===i?'me':''}"><span>${x}</span><div class="bar"><i style="width:${all[j].value*100}%"></i></div><b>${pct(all[j].value)}%</b></div>`).join('')}</div></div>
   <details><summary>How was this worked out?</summary><div class="row" style="margin-top:12px">
   <button class="ghost sm ${method==='enumeration'?'on':''}" onclick="method='enumeration';solve()">Enumeration</button>
   <button class="ghost sm ${method==='elimination'?'on':''}" onclick="method='elimination';solve()">Variable elimination</button></div>
   <p class="mut" id="how"></p><p id="formula" style="font-weight:600"></p><pre id="steps"></pre></details></div>`;
-  $('sent').textContent=`The probability${given} that ${qv} is ${TF(qval)} is ${p}%.`;
+  $('sent').textContent=`The probability${given} that ${qv} is ${qval} is ${(d.value*100).toFixed(2)}%.`;
   $('how').textContent=HOW[method];$('formula').textContent=d.formula;$('steps').textContent=d.steps.join('\n');
-  document.querySelector('#res details').open=true}
+  document.querySelector('#res details').open=wasOpen;solved=true;saveDraft()}
  catch(e){$('res').innerHTML='<p class="err" id="er"></p>';$('er').textContent=e instanceof TypeError?NOAPI:e.message}}
-
 // ---------- save / open ----------
-function loadNet(o){const vs=o.variables,P=o.parents||{},C=o.cpt||{};
+function fromBool(o){const st={},c={};   // old true/false files: 0.3 becomes [0.3, 0.7]
+ for(const v of o.variables){st[v]=['true','false'];c[v]={};
+  for(const[k,p]of Object.entries((o.cpt||{})[v]||{}))c[v][[...k].map(x=>x==='T'?'true':'false').join(',')]=[+p,+(1-p).toFixed(6)]}
+ return{variables:o.variables,states:st,parents:o.parents||{},cpt:c}}
+function loadNet(o){if(!o.states)o=fromBool(o);const vs=o.variables,P=o.parents||{},S=o.states||{},C=o.cpt||{};
  if(!Array.isArray(vs)||vs.length>MAX||new Set(vs).size!==vs.length||!vs.every(v=>/^\w{1,12}$/.test(v)))throw Error('This file isn’t a valid network');
- const n={variables:vs,parents:{},cpt:{}};
- for(const v of vs){const p=P[v]||[];
-  if(!Array.isArray(p)||p.some(x=>!vs.includes(x)||x===v))throw Error('Bad dependencies for '+v);
-  n.parents[v]=p;n.cpt[v]={};
-  for(const k of combos(p.length)){const x=Number(C[v]?.[k]);if(!(x>=0&&x<=1))throw Error('Bad probability for '+v);n.cpt[v][k]=x}}
+ const n={variables:vs,states:{},parents:{},cpt:{}};
+ for(const v of vs){const st=S[v],p=P[v]||[];
+  if(!Array.isArray(st)||st.length<2||st.length>6||new Set(st).size!==st.length||!st.every(x=>/^\w{1,12}$/.test(x)))throw Error('Bad states for '+v);
+  if(!Array.isArray(p)||p.some(x=>!vs.includes(x)||x===v)||new Set(p).size!==p.length)throw Error('Bad dependencies for '+v);
+  n.states[v]=st;n.parents[v]=p}
+ for(const v of vs){n.cpt[v]={};
+  for(const k of keysFor(n,v)){const a=C[v]&&C[v][k];
+   if(!Array.isArray(a)||a.length!==n.states[v].length||a.some(x=>!(x>=0&&x<=1))||Math.abs(a.reduce((t,y)=>t+Number(y),0)-1)>1e-5)throw Error('Bad probabilities for '+v);
+   n.cpt[v][k]=a.map(Number)}}
  const done=new Set();let left=[...vs];
  while(left.length){const r=left.filter(v=>n.parents[v].every(p=>done.has(p)));
   if(!r.length)throw Error('The network has a loop');r.forEach(v=>done.add(v));left=left.filter(v=>!done.has(v))}
- net=n;deps=[];vs.forEach(c=>n.parents[c].forEach(p=>deps.push({c,p})));ev=[];qv=vs[0]||'';qval='T';screen=4;renderAll()}
+ n.pos={};for(const v of vs){const q=o.pos&&o.pos[v];if(Array.isArray(q)&&q.length===2&&q.every(Number.isFinite))n.pos[v]=q.map(Number)}
+ net=n;deps=[];vs.forEach(c=>n.parents[c].forEach(p=>deps.push({c,p})));ev=[];qv=vs[0]||'';qval=n.states[qv]?n.states[qv][0]:'';screen=4;solved=false;renderAll()}
 function save(){const a=document.createElement('a');
  a.href=URL.createObjectURL(new Blob([JSON.stringify(net,null,2)],{type:'application/json'}));a.download='bayesynapse-network.json';a.click();toast('Network saved to your downloads')}
 $('file').onchange=async e=>{try{loadNet(JSON.parse(await e.target.files[0].text()));toTop()}catch(x){toast(x.message)}e.target.value=''};
-renderAll();
+addEventListener('resize',()=>{if(screen===4)draw();if(screen==='draw')drawEd()});
+paintTheme();if(!restoreSession())renderAll();
+if(document.fonts)document.fonts.ready.then(centre);
 </script></body></html>
